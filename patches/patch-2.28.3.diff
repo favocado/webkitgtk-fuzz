@@ -1,0 +1,99 @@
+diff -ruN webkitgtk-2.28.3/Source/WebCore/page/DOMWindow.cpp webkitgtk-2.28.3_patch/Source/WebCore/page/DOMWindow.cpp
+--- webkitgtk-2.28.3/Source/WebCore/page/DOMWindow.cpp	2020-07-25 01:04:17.382511470 -0700
++++ webkitgtk-2.28.3_patch/Source/WebCore/page/DOMWindow.cpp	2020-07-25 01:36:45.000000000 -0700
+@@ -27,6 +27,9 @@
+ #include "config.h"
+ #include "DOMWindow.h"
+ 
++#include "GCController.h"
++#include <stdlib.h>
++
+ #include "BackForwardController.h"
+ #include "BarProp.h"
+ #include "CSSComputedStyleDeclaration.h"
+@@ -1113,6 +1116,8 @@
+ 
+ void DOMWindow::alert(const String& message)
+ {
++    WebCore::GCController::singleton().garbageCollectNow();
++    return;
+     auto* frame = this->frame();
+     if (!frame)
+         return;
+@@ -1139,32 +1144,55 @@
+     page->chrome().runJavaScriptAlert(*frame, message);
+ }
+ 
+-bool DOMWindow::confirmForBindings(const String& message)
++FILE *f = NULL;
++int k = 0;
++pthread_mutex_t writer_lock = PTHREAD_MUTEX_INITIALIZER;
++int pid = getpid();
++bool DOMWindow::confirmForBindings(const String &message)
+ {
+-    auto* frame = this->frame();
+-    if (!frame)
+-        return false;
+-    
+-    if (document()->isSandboxed(SandboxModals)) {
+-        printErrorMessage("Use of window.confirm is not allowed in a sandboxed frame when the allow-modals flag is not set.");
+-        return false;
+-    }
++    pthread_mutex_lock(&writer_lock);
++    if (k == 0 || !strcmp(message.utf8().data(), "START FUZZING"))
++    {
++        char *options = getenv("ASAN_OPTIONS");
++        if (options == NULL)
++        {
++            fprintf(stdout, "error: no ASAN_OPTIONS\n");
++            return false;
++        }
+ 
+-    auto* page = frame->page();
+-    if (!page)
+-        return false;
++        char *log_path = strstr(options, "log_path=");
++        if (log_path == NULL)
++        {
++            fprintf(stdout, "error: no log_path=\n");
++            return false;
++        }
+ 
+-    if (!page->arePromptsAllowed()) {
+-        printErrorMessage("Use of window.confirm is not allowed while unloading a page.");
+-        return false;
+-    }
++        log_path += sizeof("log_path=") - 1; // Move to the value.
+ 
+-    frame->document()->updateStyleIfNeeded();
+-#if ENABLE(POINTER_LOCK)
+-    page->pointerLockController().requestPointerUnlock();
+-#endif
++        // This might not be the last option - find the separator and change it
++        // to a NUL-terminator.
++        log_path = strdup(log_path);
++
++        char *p = strchr(log_path, ',');
++        if (p != NULL)
++        {
++            *p = '\0';
++        }
++        char filelog[256];
++        snprintf(filelog, 256, "%s%s", log_path, "log.html");
++        if (f != NULL)
++            fclose(f);
++        f = fopen(filelog, "wb");
++        printf("New Corpus\n");
++        k = 1;
++    }
+ 
+-    return page->chrome().runJavaScriptConfirm(*frame, message);
++    fprintf(f, "%s", message.utf8().data());
++    fflush(f);
++    pthread_mutex_unlock(&writer_lock);
++    if (strcmp("exit_now", message.utf8().data()) == 0)
++        exit(-1);
++    return true;
+ }
+ 
+ String DOMWindow::prompt(const String& message, const String& defaultValue)
