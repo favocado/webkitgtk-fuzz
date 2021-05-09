@@ -4,7 +4,7 @@ git clone https://github.com/favocado/pre-release-favocado
 mv pre-release-favocado favocado
 cd favocado
 git checkout -f webkit-gtk
-
+cd ../..
 WEBKIT_VERSION=2.28.3
 FUZZ_TYPE="context-dependent"
 # FUZZ_TYPE="non-context"
