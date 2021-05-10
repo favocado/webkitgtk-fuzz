@@ -3,12 +3,9 @@ MAINTAINER mipu94
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -q -y update \
 && apt-get -q -y install sudo \
-                          \
                           wget \
                           unzip \
-                          \
                           git \
-                          \
                           make \
                           cmake \
                           ruby \
