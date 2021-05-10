@@ -1,21 +1,26 @@
 FROM ubuntu:18.04
 MAINTAINER mipu94
 ARG DEBIAN_FRONTEND=noninteractive
-RUN apt-get -y update && \
-    apt-get install -y wget \
-    cmake \
-    bison \
-    git \
-    unzip \
-    xz-utils \
-    apache2 \
-    llvm-7 \ 
-    clang-7 \
-    libclang-7-dev \
-    tzdata \
-    sed \ 
-    ruby
-
+RUN apt-get -q -y update \
+&& apt-get -q -y install sudo \
+                          \
+                          wget \
+                          unzip \
+                          \
+                          git \
+                          \
+                          make \
+                          cmake \
+                          ruby \
+                          debhelper \
+                          gawk \
+                          gperf \
+                          bison \
+                          flex \
+                          gtk-doc-tools\
+                          python3-setuptools \
+                          apache2\
+&& apt-get -y autoremove
 WORKDIR /root/
 
 # install ninja
@@ -73,12 +78,11 @@ RUN mkdir mybuild && cd mybuild && cmake \
 
 RUN cp -rf mybuild /root/webkitASAN
 
-RUN echo "export DISPLAY=:0" >> ~/.bashrc
-
 ADD resource/ /resource
 RUN mv /resource/favocado/Generator /var/www/html
 
 RUN echo "python /resource/monitor.py $FUZZ_TYPE 20 >/root/logfuzzing" >>/resource/run.sh 
+RUN chmod +x /resource/run.sh
 
 WORKDIR /root
 RUN rm clang+*  webkitgtk-* -rf

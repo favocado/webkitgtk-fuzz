@@ -16,7 +16,7 @@ mkdir corpus
 
 docker build . -t webkit_asan${WEBKIT_VERSION} --build-arg WEBKIT_VERSION=${WEBKIT_VERSION} --build-arg FUZZ_TYPE=${FUZZ_TYPE}
 
-for ((i = 0 ; i <= 8 ; i++)); do
+for ((i = 0 ; i <= 2 ; i++)); do
 	docker run -it --cpus="2.0" --memory="2g"  -d -v $SCRIPTPATH/crashes/webkit${WEBKIT_VERSION}:/root/crashes -v $SCRIPTPATH/corpus:/root/corpus  --name="fuzzwebkit$i" webkit_asan${WEBKIT_VERSION} /bin/bash -c /resource/run.sh
 done
 
