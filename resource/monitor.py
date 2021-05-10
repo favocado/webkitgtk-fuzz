@@ -97,7 +97,7 @@ def get_crash_address():
                     if "#0 0x" in line:
                         return line.split(")")[-2].split("/")[-1]
     print open(af,"rb").read()
-    return "HAHA"
+    return "NOT_FOUND_EIP"
 
 
 def get_crash():
