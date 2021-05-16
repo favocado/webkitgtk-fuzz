@@ -1,7 +1,6 @@
 #!/bin/bash
 cd resource
-git clone https://github.com/favocado/pre-release-favocado
-mv pre-release-favocado favocado
+git clone https://github.com/favocado/favocado
 cd favocado
 git checkout -f webkit-gtk
 cd ../..
