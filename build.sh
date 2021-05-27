@@ -3,6 +3,7 @@ cd resource
 git clone https://github.com/favocado/favocado
 cd favocado
 git checkout -f webkit-gtk
+sed -i -e "s/FuzzIncontext =.*/FuzzIncontext=true/"  ./Generator/Core/Core_Config.js
 cd ../..
 WEBKIT_VERSION=2.28.3
 FUZZ_TYPE="context-dependent"
